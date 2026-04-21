@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Neon League</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;700;900&display=swap');
+
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            background: #000; 
+            font-family: 'Outfit', sans-serif; 
+            user-select: none;
+        }
+
+        #mainMenu {
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100vw; 
+            height: 100vh; 
+            background: radial-gradient(circle at center, #1a1a2e 0%, #000 100%); 
+            z-index: 50; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center;
+        }
+
+        #mainMenu h1 {
+            color: #00f2fe; 
+            font-size: 7rem; 
+            margin-bottom: 0px; 
+            text-shadow: 0 0 50px rgba(0, 242, 254, 0.6), 0 0 15px #fff; 
+            letter-spacing: 5px;
+            text-transform: uppercase;
+        }
+
+        #mainMenu p {
+            color: #fff; 
+            font-size: 1.5rem; 
+            margin-bottom: 60px; 
+            font-weight: 300; 
+            letter-spacing: 2px;
+            opacity: 0.8;
+        }
+
+        .menu-btn {
+            padding: 20px 40px; 
+            font-size: 2rem; 
+            background: linear-gradient(135deg, #00f2fe, #4facfe); 
+            color: #000; 
+            border: none; 
+            border-radius: 15px; 
+            font-weight: 900; 
+            cursor: pointer; 
+            text-transform: uppercase; 
+            box-shadow: 0 10px 40px rgba(0, 242, 254, 0.4); 
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-family: 'Outfit', sans-serif;
+        }
+        .menu-btn.host { background: linear-gradient(135deg, #ffaa00, #ff7700); box-shadow: 0 10px 40px rgba(255, 170, 0, 0.4); }
+        .menu-btn.join { background: linear-gradient(135deg, #a8ff78, #78ffd6); box-shadow: 0 10px 40px rgba(168, 255, 120, 0.4); }
+
+        .menu-btn:hover {
+            transform: scale(1.05) translateY(-3px);
+        }
+
+        #joinIdInput {
+            padding: 10px 20px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border-radius: 10px;
+            border: 2px solid #fff;
+            background: rgba(0,0,0,0.5);
+            color: #fff;
+            text-align: center;
+            font-family: 'Outfit', sans-serif;
+            outline: none;
+            text-transform: uppercase;
+        }
+        #joinIdInput::placeholder {
+            color: #aaa;
+            text-transform: none;
+        }
+
+        #ui { 
+            position: absolute; 
+            top: 30px; 
+            width: 100%; 
+            display: none;
+            flex-direction: column;
+            align-items: center; 
+            color: white; 
+            pointer-events: none; 
+            z-index: 10;
+        }
+
+        .scoreboard {
+            display: flex;
+            align-items: center;
+            gap: 50px;
+            font-size: 5rem;
+            font-weight: 900;
+        }
+
+        .score-box {
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            padding: 10px 50px;
+            border-radius: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .blue { 
+            color: #00f2fe; 
+            text-shadow: 0 0 30px rgba(0, 242, 254, 0.8); 
+            border-bottom: 4px solid #00f2fe;
+        }
+
+        .orange { 
+            color: #ffaa00; 
+            text-shadow: 0 0 30px rgba(255, 170, 0, 0.8); 
+            border-bottom: 4px solid #ffaa00;
+        }
+
+        #timer {
+            font-size: 3rem;
+            color: #ccc;
+        }
+
+        #msg { 
+            font-size: 8rem; 
+            margin-top: 15vh; 
+            opacity: 0; 
+            transition: opacity 0.3s; 
+            font-weight: 900; 
+            text-transform: uppercase;
+            letter-spacing: 10px;
+            text-shadow: 0 10px 50px rgba(0,0,0,0.9); 
+        }
+
+        #msg.show {
+            opacity: 1;
+            transform: scale(1.1);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #controls { 
+            position: absolute; 
+            bottom: 30px; 
+            left: 30px; 
+            color: rgba(255,255,255,0.8); 
+            pointer-events: none; 
+            background: rgba(0,0,0,0.5);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(5px);
+            font-size: 1.1rem;
+            border: 1px solid rgba(255,255,255,0.1);
+            line-height: 1.5;
+            display: none;
+        }
+        #controls kbd {
+            background: #fff;
+            color: #000;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-right: 5px;
+            font-family: inherit;
+            font-size: 0.9rem;
+        }
+        
+        #speedLines {
+            position: absolute;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none;
+            box-shadow: inset 0 0 150px rgba(0,242,254,0.0);
+            transition: box-shadow 0.2s;
+        }
+        #speedLines.boosting {
+            box-shadow: inset 0 0 200px rgba(0,242,254,0.4);
+        }
+
+    </style>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+</head>
+<body>
+
+    <div id="mainMenu">
+        <h1>NEON LEAGUE</h1>
+        <p>A 3D Physics Arcade Match</p>
+        <div style="display: flex; gap: 20px;">
+            <button id="startBtn" class="menu-btn">Single Player</button>
+            <button id="hostBtn" class="menu-btn host">Host Game</button>
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <input type="text" id="joinIdInput" placeholder="Enter Host ID..." autocomplete="off">
+            <button id="joinBtn" class="menu-btn join">Join Game</button>
+        </div>
+        <div id="peerStatus" style="margin-top: 30px; font-size: 1.5rem; color: #aaa; font-weight: bold;"></div>
+    </div>
+
+    <div id="ui">
+        <div class="scoreboard">
+            <div class="score-box blue" id="s1">0</div>
+            <div id="timer">5:00</div>
+            <div class="score-box orange" id="s2">0</div>
+        </div>
+        <div id="msg">GOAL!</div>
+    </div>
+    
+    <div id="speedLines"></div>
+
+    <div id="controls">
+        <div style="margin-bottom: 5px; font-weight: bold; color: #00f2fe;">STANDARD CONTROLS</div>
+        <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> : Drive / Steer<br>
+        <kbd>Space</kbd> / <kbd>R-Click</kbd> : Jump<br>
+        <kbd>L-Click</kbd> : Rocket Boost<br>
+        <kbd>Shift</kbd> : Powerslide / Air Roll<br>
+        <kbd>C</kbd> : Toggle Camera
+    </div>
+
+    <script>
+        // --- SCENE SETUP ---
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x0a0a15, 0.003);
+
+        const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 2000);
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x0a0a15);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        document.body.appendChild(renderer.domElement);
+
+        // --- PHYSICS SETUP ---
+        const world = new CANNON.World();
+        world.gravity.set(0, -28, 0);
+        world.broadphase = new CANNON.NaiveBroadphase();
+        world.solver.iterations = 40; // Double iterations to physically prevent tunneling collisions
+
+        const physicsMaterial = new CANNON.Material("standard");
+        const bouncyMaterial = new CANNON.Material("bouncy");
+
+        world.addContactMaterial(new CANNON.ContactMaterial(physicsMaterial, physicsMaterial, { friction: 0.0, restitution: 0.1 }));
+        world.addContactMaterial(new CANNON.ContactMaterial(physicsMaterial, bouncyMaterial, { friction: 0.4, restitution: 0.65 }));
+
+        // --- ENHANCED LEVEL SIZING ---
+        const fieldWidth = 300; 
+        const fieldLength = 450; 
+        const wallHeight = 80;   
+        const goalWidth = 85;    
+        const goalHeight = 35;   
+
+        // --- LIGHTING ---
+        const ambient = new THREE.AmbientLight(0xffffff, 0.4);
+        scene.add(ambient);
+
+        const dirLight = new THREE.DirectionalLight(0xffaa88, 0.8);
+        dirLight.position.set(50, 150, 50);
+        dirLight.castShadow = true;
+        dirLight.shadow.mapSize.width = 2048;
+        dirLight.shadow.mapSize.height = 2048;
+        dirLight.shadow.camera.left = -fieldWidth;
+        dirLight.shadow.camera.right = fieldWidth;
+        dirLight.shadow.camera.top = fieldLength;
+        dirLight.shadow.camera.bottom = -fieldLength;
+        dirLight.shadow.camera.far = 500;
+        scene.add(dirLight);
+
+        // --- PITCH GENERATION ---
+        function createFieldTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1024; canvas.height = 1024;
+            const ctx = canvas.getContext('2d');
+            
+            ctx.fillStyle = '#0a0d14';
+            ctx.fillRect(0,0,1024,1024);
+            
+            ctx.strokeStyle = 'rgba(0, 242, 254, 0.15)';
+            ctx.lineWidth = 4;
+            for(let i=0; i<=1024; i+=32) { // Dense neon grid pattern
+                ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 1024); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(1024, i); ctx.stroke();
+            }
+
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 8;
+            ctx.strokeRect(64, 64, 896, 896);
+            ctx.beginPath(); ctx.arc(512, 512, 100, 0, Math.PI*2); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(0, 512); ctx.lineTo(1024, 512); ctx.stroke();
+
+            const tex = new THREE.CanvasTexture(canvas);
+            tex.wrapS = THREE.RepeatWrapping;
+            tex.wrapT = THREE.RepeatWrapping;
+            tex.repeat.set(4, 6); 
+            return tex;
+        }
+
+        const wallMeshes = []; // track walls to prevent camera clipping
+
+        const floorMat = new THREE.MeshStandardMaterial({ map: createFieldTexture(), roughness: 0.6 });
+        const floorMesh = new THREE.Mesh(new THREE.PlaneGeometry(fieldWidth, fieldLength), floorMat);
+        floorMesh.rotation.x = -Math.PI/2;
+        floorMesh.receiveShadow = true;
+        scene.add(floorMesh);
+
+        const floorBody = new CANNON.Body({ mass: 0, shape: new CANNON.Plane(), material: physicsMaterial });
+        floorBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1,0,0), -Math.PI/2);
+        world.addBody(floorBody);
+
+        function createWall(x, y, z, w, h, d, color=0x222233) {
+            const geom = new THREE.BoxGeometry(w, h, d);
+            const mat = new THREE.MeshStandardMaterial({ color: color, transparent: true, opacity: 0.3, side: THREE.DoubleSide });
+            const mesh = new THREE.Mesh(geom, mat);
+            const wire = new THREE.LineSegments(new THREE.EdgesGeometry(geom), new THREE.LineBasicMaterial({color: color, opacity:0.15, transparent:true}));
+            mesh.add(wire);
+
+            mesh.position.set(x, y, z);
+            scene.add(mesh);
+            wallMeshes.push(mesh);
+            const shape = new CANNON.Box(new CANNON.Vec3(w/2, h/2, d/2));
+            const body = new CANNON.Body({ mass: 0, shape: shape, material: physicsMaterial });
+            body.position.set(x, y, z);
+            world.addBody(body);
+        }
+
+        // --- STADIUM OCTAGON SHAPE ---
+        const cornerCut = 70; 
+        const straightLenZ = fieldLength - 2*cornerCut;
+        const straightLenX = fieldWidth - 2*cornerCut;
+
+        // Straight Side Walls (10 thickness blocks tunneling out)
+        createWall(-fieldWidth/2 - 4, wallHeight/2, 0, 10, wallHeight, straightLenZ); // Left
+        createWall(fieldWidth/2 + 4, wallHeight/2, 0, 10, wallHeight, straightLenZ);  // Right
+
+        // Diagonal Corner Walls
+        const diagLen = Math.sqrt(cornerCut*cornerCut + cornerCut*cornerCut); 
+        function createDiagWall(cx, cz, angleY) {
+            const geom = new THREE.BoxGeometry(diagLen, wallHeight, 10); // Fat limits
+            const mat = new THREE.MeshStandardMaterial({ color: 0x222233, transparent: true, opacity: 0.3, side: THREE.DoubleSide });
+            const mesh = new THREE.Mesh(geom, mat);
+            const wire = new THREE.LineSegments(new THREE.EdgesGeometry(geom), new THREE.LineBasicMaterial({color: 0x222233, opacity:0.15, transparent:true}));
+            mesh.add(wire);
+            
+            // Push it back slightly along its local normal so the inner face naturally sits at cx, cz.
+            const tempObj = new THREE.Object3D();
+            tempObj.position.set(cx, wallHeight/2, cz);
+            tempObj.rotation.y = angleY;
+            tempObj.translateZ(-4);
+            tempObj.updateMatrixWorld();
+
+            mesh.position.copy(tempObj.position);
+            mesh.quaternion.copy(tempObj.quaternion);
+            scene.add(mesh);
+            wallMeshes.push(mesh);
+            const body = new CANNON.Body({ mass:0, shape: new CANNON.Box(new CANNON.Vec3(diagLen/2, wallHeight/2, 5)), material: physicsMaterial });
+            body.position.copy(mesh.position);
+            body.quaternion.copy(mesh.quaternion);
+            world.addBody(body);
+        }
+
+        createDiagWall(-fieldWidth/2 + cornerCut/2, -fieldLength/2 + cornerCut/2, Math.PI/4); // Top Left (-X, -Z)
+        createDiagWall(fieldWidth/2 - cornerCut/2, -fieldLength/2 + cornerCut/2, -Math.PI/4);   // Top Right (+X, -Z)
+        createDiagWall(-fieldWidth/2 + cornerCut/2, fieldLength/2 - cornerCut/2, -Math.PI/4);  // Bottom Left (-X, +Z)
+        createDiagWall(fieldWidth/2 - cornerCut/2, fieldLength/2 - cornerCut/2, Math.PI/4); // Bottom Right (+X, +Z)
+
+        function createGoalEnd(zDir, color) {
+            const zOff = zDir * fieldLength/2;
+            const sideFlatW = (straightLenX - goalWidth)/2; 
+            const xShift = goalWidth/2 + sideFlatW/2; 
+            
+            createWall(-xShift, wallHeight/2, zOff + (zDir*4), sideFlatW, wallHeight, 10, color);
+            createWall(xShift, wallHeight/2, zOff + (zDir*4), sideFlatW, wallHeight, 10, color);
+            createWall(0, wallHeight - (wallHeight - goalHeight)/2, zOff + (zDir*4), goalWidth, wallHeight - goalHeight, 10, color);
+
+            const netDepth = 20;
+            const netZ = zOff + (zDir * netDepth/2);
+            const netBackZ = zOff + (zDir * netDepth);
+
+            createWall(0, goalHeight/2, netBackZ, goalWidth, goalHeight, 2, color);
+            createWall(-goalWidth/2, goalHeight/2, netZ, 2, goalHeight, netDepth, color);
+            createWall(goalWidth/2, goalHeight/2, netZ, 2, goalHeight, netDepth, color);
+            createWall(0, goalHeight, netZ, goalWidth, 2, netDepth, color);
+            
+            const spot = new THREE.SpotLight(color, 2, 300, 0.5, 0.5, 1);
+            spot.position.set(0, goalHeight - 2, zOff);
+            spot.target.position.set(0, 0, 0);
+            scene.add(spot); scene.add(spot.target);
+        }
+
+        createGoalEnd(1, 0xffaa00);
+        createGoalEnd(-1, 0x00f2fe);
+        
+        // Ceiling
+        createWall(0, wallHeight, 0, fieldWidth, 4, fieldLength + 40);
+
+        // --- VEHICLE FACTORY ---
+        const carW = 4.5;
+        const carH = 2.5;
+        const carL = 9.0;
+
+        // Shift EVERYTHING downwards so the center of mass aligns at purely 0!
+        const COM_Y_OFFSET = carH/2 + 0.5;
+
+        function createPhysicsCar(x, z, mass=500) {
+            const body = new CANNON.Body({
+                mass: mass, material: physicsMaterial,
+                linearDamping: 0.35, angularDamping: 0.82 
+            });
+            // Center of mass is exactly 0. Height matches the tires!
+            const shape = new CANNON.Box(new CANNON.Vec3(carW/2, 1.75, carL/2));
+            body.addShape(shape); // No offset! Force pushes entirely flush into COM!
+
+            body.position.set(x, 3, z);
+            world.addBody(body);
+            return body;
+        }
+
+        function createCarMesh(colorHex, trimHex) {
+            const group = new THREE.Group();
+            
+            const baseGeom = new THREE.BoxGeometry(carW, carH*0.3, carL);
+            baseGeom.translate(0, ((carH*0.3)/2 + 0.5) - COM_Y_OFFSET, 0); 
+            const baseMat = new THREE.MeshStandardMaterial({ color: 0x1a1a20, roughness: 0.9 });
+            group.add(new THREE.Mesh(baseGeom, baseMat));
+
+            const bodyGeom = new THREE.BoxGeometry(carW - 0.4, carH*0.6, carL * 0.85);
+            bodyGeom.translate(0, (carH*0.6 + 0.5) - COM_Y_OFFSET, -carL*0.05); 
+            const bodyMat = new THREE.MeshStandardMaterial({ color: colorHex, metalness: 0.6, roughness: 0.3 });
+            group.add(new THREE.Mesh(bodyGeom, bodyMat));
+            
+            const glassGeom = new THREE.BoxGeometry(carW - 1, carH*0.5, carL * 0.35);
+            glassGeom.translate(0, (carH*1.0 + 0.5) - COM_Y_OFFSET, -carL*0.1);
+            const glassMat = new THREE.MeshStandardMaterial({ color: 0x050505, metalness: 0.9, roughness: 0.05 });
+            group.add(new THREE.Mesh(glassGeom, glassMat));
+
+            const spoilerW = carW - 0.2;
+            const spoilerPillarGeom = new THREE.BoxGeometry(0.2, 0.6, 0.4);
+            const rPillar = new THREE.Mesh(spoilerPillarGeom, bodyMat);
+            rPillar.position.set(-spoilerW/2 + 0.5, (carH*0.9+0.5) - COM_Y_OFFSET, carL*0.38);
+            const lPillar = new THREE.Mesh(spoilerPillarGeom, bodyMat);
+            lPillar.position.set(spoilerW/2 - 0.5, (carH*0.9+0.5) - COM_Y_OFFSET, carL*0.38);
+            
+            const spoilerWingGeom = new THREE.BoxGeometry(spoilerW, 0.15, 0.8);
+            const wing = new THREE.Mesh(spoilerWingGeom, new THREE.MeshStandardMaterial({color: 0x111111}));
+            wing.position.set(0, (carH*1.2+0.5) - COM_Y_OFFSET, carL*0.4);
+            group.add(rPillar); group.add(lPillar); group.add(wing);
+
+            const wheelGeom = new THREE.CylinderGeometry(1.0, 1.0, 0.5, 16); wheelGeom.rotateZ(Math.PI/2);
+            const wheelMat = new THREE.MeshStandardMaterial({ color: 0x0a0a0a, roughness: 0.9 });
+            const rimMat = new THREE.MeshStandardMaterial({ color: trimHex, metalness: 0.8, roughness: 0.2 });
+            const rimGeom = new THREE.CylinderGeometry(0.6, 0.6, 0.52, 8); rimGeom.rotateZ(Math.PI/2);
+
+            const wZ = carL*0.3, wX = carW/2, wY = 1.0 - COM_Y_OFFSET;
+            const positions = [[-wX, wY, -wZ], [wX, wY, -wZ], [-wX, wY, wZ], [wX, wY, wZ]];
+            
+            positions.forEach(pos => {
+                let w = new THREE.Mesh(wheelGeom, wheelMat); w.position.set(pos[0], pos[1], pos[2]);
+                let r = new THREE.Mesh(rimGeom, rimMat); r.position.set(pos[0], pos[1], pos[2]);
+                group.add(w); group.add(r);
+            });
+
+            const lightGeom = new THREE.BoxGeometry(1.2, 0.3, 0.2);
+            const lightMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            let hl1 = new THREE.Mesh(lightGeom, lightMat); hl1.position.set(-carW/2 + 0.8, (carH*0.7 + 0.5) - COM_Y_OFFSET, -carL*0.47);
+            let hl2 = new THREE.Mesh(lightGeom, lightMat); hl2.position.set(carW/2 - 0.8, (carH*0.7 + 0.5) - COM_Y_OFFSET, -carL*0.47);
+            group.add(hl1); group.add(hl2);
+
+            return group;
+        }
+
+        function createExhaust() {
+             const exhaustGroup = new THREE.Group();
+             exhaustGroup.position.set(0, (carH/2 + 0.4) - COM_Y_OFFSET, carL/2);
+             const exMat = new THREE.MeshBasicMaterial({ color: 0xffaa00 });
+             const ex1 = new THREE.Mesh(new THREE.BoxGeometry(1,1,2), exMat);
+             ex1.position.set(-1.0, 0, 0.5); ex1.visible = false;
+             const ex2 = new THREE.Mesh(new THREE.BoxGeometry(1,1,2), exMat);
+             ex2.position.set(1.0, 0, 0.5); ex2.visible = false;
+             exhaustGroup.add(ex1); exhaustGroup.add(ex2);
+             return { group: exhaustGroup, f1: ex1, f2: ex2 };
+        }
+
+        // --- SPAWN ACTORS ---
+        const carBody = createPhysicsCar(0, -100);
+        carBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0,1,0), Math.PI); 
+        const carGroup = createCarMesh(0x00f2fe, 0xffffff);
+        const carLight = new THREE.PointLight(0x00f2fe, 1, 40);
+        carGroup.add(carLight);
+        const playerExhaust = createExhaust();
+        carGroup.add(playerExhaust.group);
+        scene.add(carGroup);
+
+        const npcBody = createPhysicsCar(0, 100);
+        npcBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0,1,0), 0); 
+        const npcGroup = createCarMesh(0xffaa00, 0xffffff);
+        const npcLight = new THREE.PointLight(0xffaa00, 1, 40);
+        npcGroup.add(npcLight);
+        const npcExhaust = createExhaust();
+        npcGroup.add(npcExhaust.group);
+        scene.add(npcGroup);
+
+
+        // --- BALL ---
+        const ballR = 4.5;
+        const ballBody = new CANNON.Body({
+            mass: 120,
+            material: bouncyMaterial,
+            linearDamping: 0.25,
+            angularDamping: 0.4
+        });
+        ballBody.addShape(new CANNON.Sphere(ballR));
+        ballBody.position.set(0, 15, 0);
+        world.addBody(ballBody);
+
+        const ballGeom = new THREE.SphereGeometry(ballR, 32, 32);
+        const ballMat = new THREE.MeshStandardMaterial({ 
+            color: 0xffffff, emissive: 0x222222, metalness: 0.6, roughness: 0.3 
+        });
+        const ballMesh = new THREE.Mesh(ballGeom, ballMat);
+        ballMesh.castShadow = true;
+        scene.add(ballMesh);
+
+        const ballHalo = new THREE.PointLight(0xffffff, 1.5, 60);
+        scene.add(ballHalo);
+
+        // --- INPUT ---
+        const keys = {};
+        window.addEventListener('keydown', e => keys[e.code] = true);
+        window.addEventListener('keyup', e => keys[e.code] = false);
+        window.addEventListener('blur', () => {
+            for (let k in keys) keys[k] = false;
+            mouse.left = false; mouse.right = false;
+        });
+
+        const mouse = { left: false, right: false };
+        window.addEventListener('mousedown', e => {
+            if (e.button === 0) mouse.left = true;
+            if (e.button === 2) mouse.right = true;
+        });
+        window.addEventListener('mouseup', e => {
+            if (e.button === 0) mouse.left = false;
+            if (e.button === 2) mouse.right = false;
+        });
+        window.addEventListener('contextmenu', e => e.preventDefault());
+
+        // --- GAME STATES & UI ---
+        let gameState = 'MENU'; // MENU, COUNTDOWN, PLAYING, GOAL
+        let s1 = 0, s2 = 0;
+        let jumpDebounce = false;
+        
+        // Input Lockout for taking off
+        let airKeyLock = { W: false, S: false, A: false, D: false };
+        let lastGroundedState = true;
+
+        document.getElementById('startBtn').addEventListener('click', () => {
+            isMultiplayer = false; isHost = true;
+            document.getElementById('mainMenu').style.display = 'none';
+            document.getElementById('ui').style.display = 'flex';
+            document.getElementById('controls').style.display = 'block';
+            resetAndStart();
+        });
+        document.getElementById('hostBtn').addEventListener('click', () => {
+            initPeer();
+        });
+        document.getElementById('joinBtn').addEventListener('click', () => {
+            let id = document.getElementById('joinIdInput').value.trim();
+            if(id) joinPeer(id);
+        });
+
+        function resetAndStart() {
+            resetMatch();
+            startCountdown();
+        }
+
+        function startCountdown() {
+            gameState = 'COUNTDOWN';
+            let count = 3;
+            let msg = document.getElementById('msg');
+            msg.style.color = '#fff';
+            msg.classList.remove('show');
+            void msg.offsetWidth;
+            msg.innerText = count;
+            msg.classList.add('show');
+
+            let interval = setInterval(() => {
+                count--;
+                msg.classList.remove('show');
+                void msg.offsetWidth;
+                if (count > 0) {
+                    msg.innerText = count;
+                    msg.classList.add('show');
+                } else {
+                    msg.innerText = "GO!";
+                    msg.classList.add('show');
+                    gameState = 'PLAYING';
+                    setTimeout(() => msg.classList.remove('show'), 1000);
+                    clearInterval(interval);
+                }
+            }, 1000);
+        }
+
+        function checkGoals() {
+            if (isMultiplayer && !isHost) return; // Only Host Evaluates Goals!
+            if (gameState !== 'PLAYING') return;
+            if (ballBody.position.y < goalHeight + 5) {
+                if (ballBody.position.z > fieldLength/2) {
+                    scoreGoal(1); // Blue scores in Orange goal
+                } else if (ballBody.position.z < -fieldLength/2) {
+                    scoreGoal(2); // Orange scores in Blue goal
+                }
+            }
+        }
+
+        function triggerExplosionForce(carPhysicsBody) {
+            let forceDir = carPhysicsBody.position.vsub(ballBody.position);
+            let dist = forceDir.length();
+            if (dist < 100) {
+                forceDir.normalize();
+                carPhysicsBody.applyImpulse(new CANNON.Vec3(forceDir.x * 20000, 15000, forceDir.z * 20000), carPhysicsBody.position);
+            }
+        }
+
+        function scoreGoal(team) {
+            gameState = 'GOAL';
+            const msg = document.getElementById('msg');
+            
+            let speedRaw = ballBody.velocity.length();
+            // The stadium length is 450 units, physically mirroring a real ~100m arena. (4.5 units = 1m)
+            // m/s = (speedRaw / 4.5). KPH = m/s * 3.6. True Multiplier = 0.8
+            let kph = Math.round(speedRaw * 0.8); 
+
+            if (team === 1) {
+                s1++; document.getElementById('s1').innerText = s1;
+                msg.innerHTML = "BLUE SCORED!<br><span style='font-size:3rem;color:#ccc;text-shadow:0 0 10px #000;letter-spacing:2px;'>" + kph + " KPH</span>";
+                msg.style.color = "#00f2fe";
+            } else {
+                s2++; document.getElementById('s2').innerText = s2;
+                msg.innerHTML = "ORANGE SCORED!<br><span style='font-size:3rem;color:#ccc;text-shadow:0 0 10px #000;letter-spacing:2px;'>" + kph + " KPH</span>";
+                msg.style.color = "#ffaa00";
+            }
+            
+            msg.classList.remove('show');
+            void msg.offsetWidth;
+            msg.classList.add('show');
+
+            triggerExplosionForce(carBody);
+            triggerExplosionForce(npcBody);
+
+            setTimeout(() => {
+                msg.classList.remove('show');
+                resetMatch();
+                startCountdown(); 
+            }, 3000);
+        }
+
+        function resetMatch() {
+            carBody.position.set(0, 3, -100);
+            carBody.velocity.set(0,0,0);
+            carBody.angularVelocity.set(0,0,0);
+            carBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0,1,0), Math.PI);
+
+            npcBody.position.set(0, 3, 100);
+            npcBody.velocity.set(0,0,0);
+            npcBody.angularVelocity.set(0,0,0);
+            npcBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0,1,0), 0); 
+
+            ballBody.position.set(0, 15, 0);
+            ballBody.velocity.set(0,0,0);
+            ballBody.angularVelocity.set(0,0,0);
+        }
+
+        function applyLateralDamping(body, rightVec, isSliding) {
+            let lateralVel = body.velocity.dot(rightVec);
+            let grip = isSliding ? 0.002 : 0.08; 
+            let dampingImpulseX = -rightVec.x * lateralVel * body.mass * grip;
+            let dampingImpulseY = -rightVec.y * lateralVel * body.mass * grip;
+            let dampingImpulseZ = -rightVec.z * lateralVel * body.mass * grip;
+            body.applyImpulse(new CANNON.Vec3(dampingImpulseX, dampingImpulseY, dampingImpulseZ), body.position);
+        }
+
+        // --- MULTIPLAYER P2P (PEERJS) ---
+        let peer = null;
+        let conn = null;
+        let isMultiplayer = false;
+        let isHost = true; 
+        let peerKeys = { W: false, A: false, S: false, D: false, Space: false, Shift: false, Click: false };
+
+        const peerConfig = {
+            config: {
+                'iceServers': [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:global.stun.twilio.com:3478' }
+                ]
+            }
+        };
+
+        function initPeer() {
+            document.getElementById('peerStatus').innerText = "Generating ID...";
+            
+            // Generate a short, 5-character readable ID instead of a massive UUID!
+            let shortId = "NEON-" + Math.random().toString(36).substring(2, 7).toUpperCase();
+            
+            // Register this exact short string with the PeerJS server alongside public STUN networks
+            peer = new Peer(shortId, peerConfig); 
+            
+            peer.on('open', id => {
+                document.getElementById('peerStatus').innerHTML = `Your Host ID: <span style="color:#00f2fe; user-select:all; font-size: 2rem;">${id}</span><br><span style="font-size: 1rem; color: #fff;">Waiting for opponent to connect...</span>`;
+            });
+            peer.on('connection', connection => {
+                document.getElementById('peerStatus').innerText = "Incoming Handshake...";
+                conn = connection;
+                setupConnection('HOST');
+            });
+            peer.on('error', err => {
+                document.getElementById('peerStatus').innerHTML = `<span style="color:#ff3333">Network Error: ${err.type}</span>`;
+            });
+        }
+
+        function joinPeer(targetId) {
+            // PeerJS IDs are strictly case-sensitive, force uppercase to prevent mistyping errors
+            targetId = targetId.toUpperCase();
+            
+            document.getElementById('peerStatus').innerText = `Locating ${targetId} on network...`;
+            peer = new Peer(peerConfig);
+            peer.on('open', id => {
+                document.getElementById('peerStatus').innerText = `Punching through NAT...`;
+                conn = peer.connect(targetId);
+                setupConnection('CLIENT');
+            });
+            peer.on('error', err => {
+                document.getElementById('peerStatus').innerHTML = `<span style="color:#ff3333">Network Error: ${err.type}</span>`;
+            });
+        }
+
+        function setupConnection(role) {
+            isMultiplayer = true;
+            isHost = (role === 'HOST');
+            
+            const onOpen = () => {
+                document.getElementById('peerStatus').innerText = `Connection Secured!`;
+                document.getElementById('mainMenu').style.display = 'none';
+                document.getElementById('ui').style.display = 'flex';
+                document.getElementById('controls').style.display = 'block';
+                
+                if (isHost) resetAndStart();
+                setInterval(networkTick, 16); 
+            };
+
+            // If the WebRTC socket bridged before the listener attached, trigger manually
+            if (conn.open) {
+                onOpen();
+            } else {
+                conn.on('open', onOpen);
+            }
+
+            conn.on('data', data => {
+                if (isHost) {
+                    if (data.type === 'INPUT') peerKeys = data.keys;
+                } else {
+                    if (data.type === 'STATE') {
+                        // Client-Side Prediction: Gently snap the bodies (Zero-Latency Local)
+                        ballBody.position.copy(data.b.p); ballBody.quaternion.copy(data.b.q);
+                        carBody.position.copy(data.c1.p); carBody.quaternion.copy(data.c1.q);
+                        
+                        s1 = data.score.s1; s2 = data.score.s2;
+                        document.getElementById('s1').innerText = s1;
+                        document.getElementById('s2').innerText = s2;
+                        
+                        let msg = document.getElementById('msg');
+                        msg.innerHTML = data.ui.html;
+                        msg.className = data.ui.className;
+                        
+                        gameState = data.gameState;
+                    }
+                }
+            });
+        }
+
+        function networkTick() {
+            if (isHost) {
+                conn.send({
+                    type: 'STATE',
+                    gameState: gameState,
+                    b: { p: ballBody.position, q: ballBody.quaternion },
+                    c1: { p: carBody.position, q: carBody.quaternion },
+                    c2: { p: npcBody.position, q: npcBody.quaternion },
+                    score: { s1: s1, s2: s2 },
+                    ui: { html: document.getElementById('msg').innerHTML, className: document.getElementById('msg').className }
+                });
+            } else {
+                conn.send({
+                    type: 'INPUT',
+                    keys: { 
+                        W: keys['KeyW'] || false, A: keys['KeyA'] || false, 
+                        S: keys['KeyS'] || false, D: keys['KeyD'] || false, 
+                        Space: keys['Space'] || mouse.right || false, 
+                        Shift: keys['ShiftLeft'] || keys['ShiftRight'] || false, 
+                        Click: mouse.left || false 
+                    }
+                });
+            }
+        }
+
+        function processCarInput(body, bKeys, isGrounded, isWheelsDown, groundNormal, debounceObj, airLockObj) {
+            const right = new CANNON.Vec3(1,0,0); body.quaternion.vmult(right, right);
+            const up = new CANNON.Vec3(0,1,0); body.quaternion.vmult(up, up);
+            const forward = new CANNON.Vec3(0,0,-1); body.quaternion.vmult(forward, forward);
+
+            let isSliding = bKeys.Shift;
+            let isJumpingInput = bKeys.Space;
+
+            if (debounceObj.lastGroundedState && !isGrounded) {
+                airLockObj.W = bKeys.W; airLockObj.S = bKeys.S; airLockObj.A = bKeys.A; airLockObj.D = bKeys.D;
+            }
+            debounceObj.lastGroundedState = isGrounded;
+
+            if (!bKeys.W) airLockObj.W = false;
+            if (!bKeys.S) airLockObj.S = false;
+            if (!bKeys.A) airLockObj.A = false;
+            if (!bKeys.D) airLockObj.D = false;
+
+            if (isGrounded) {
+                applyLateralDamping(body, right, isSliding);
+
+                if (isWheelsDown) {
+                    let driveForce = 15000;
+                    if (bKeys.W) body.applyForce(new CANNON.Vec3(forward.x * driveForce, forward.y * driveForce, forward.z * driveForce), body.position);
+                    if (bKeys.S) body.applyForce(new CANNON.Vec3(-forward.x * driveForce*1.4, -forward.y * driveForce*1.4, -forward.z * driveForce*1.4), body.position);
+                    
+                    let carUp = new CANNON.Vec3(0,1,0); body.quaternion.vmult(carUp, carUp);
+                    let alignAxis = new CANNON.Vec3(); carUp.cross(groundNormal, alignAxis);
+                    
+                    let springTorque = 65000; 
+                    body.torque.x += alignAxis.x * springTorque;
+                    body.torque.y += alignAxis.y * springTorque;
+                    body.torque.z += alignAxis.z * springTorque;
+
+                    let cp = body.angularVelocity.dot(right); let cr = body.angularVelocity.dot(forward);
+                    body.angularVelocity.x -= (right.x * cp + forward.x * cr) * 0.15;
+                    body.angularVelocity.y -= (right.y * cp + forward.y * cr) * 0.15;
+                    body.angularVelocity.z -= (right.z * cp + forward.z * cr) * 0.15;
+                }
+
+                let speed = body.velocity.length();
+                let steerGrip = Math.min(speed / 10.0, 1.0); 
+                if (steerGrip > 0.05) {
+                    let steerSpd = isSliding ? 3.5 : 2.0; steerSpd *= steerGrip;
+                    let dir = bKeys.S ? -1 : 1;
+                    let spinReq = 0;
+                    if (bKeys.A) spinReq = steerSpd * dir;
+                    if (bKeys.D) spinReq = -steerSpd * dir;
+
+                    let currentSpin = body.angularVelocity.dot(up);
+                    let spinDiff = spinReq - currentSpin;
+                    
+                    body.angularVelocity.x += up.x * spinDiff * 0.2;
+                    body.angularVelocity.y += up.y * spinDiff * 0.2;
+                    body.angularVelocity.z += up.z * spinDiff * 0.2;
+                }
+
+                if (isJumpingInput && !debounceObj.jumpDebounce) {
+                    let jumpPower = isWheelsDown ? 10000 : 18000;
+                    body.applyImpulse(new CANNON.Vec3(0, jumpPower, 0), body.position);
+                    if (!isWheelsDown) {
+                        body.angularVelocity.x += forward.x * 7.0; body.angularVelocity.y += forward.y * 7.0; body.angularVelocity.z += forward.z * 7.0; 
+                    }
+                    debounceObj.jumpDebounce = true; 
+                } else if (!isJumpingInput) {
+                    debounceObj.jumpDebounce = false;
+                }
+            } 
+            
+            if (!isGrounded || !isWheelsDown) {
+                let wReq = (bKeys.W && !airLockObj.W) ? -1 : 0;
+                let sReq = (bKeys.S && !airLockObj.S) ? 1 : 0;
+                let aReq = (bKeys.A && !airLockObj.A) ? 1 : 0;
+                let dReq = (bKeys.D && !airLockObj.D) ? -1 : 0;
+
+                let pitchReq = sReq + wReq; let yawReq = 0, rollReq = 0;
+
+                if (isSliding) {
+                    aReq = (bKeys.A && !airLockObj.A) ? -1 : 0;
+                    dReq = (bKeys.D && !airLockObj.D) ? 1 : 0;
+                    rollReq = aReq + dReq;
+                } else {
+                    yawReq = aReq + dReq;
+                }
+
+                const torqueVal = 25000;
+                body.torque.x += (right.x * pitchReq + up.x * yawReq + forward.x * rollReq) * torqueVal;
+                body.torque.y += (right.y * pitchReq + up.y * yawReq + forward.y * rollReq) * torqueVal;
+                body.torque.z += (right.z * pitchReq + up.z * yawReq + forward.z * rollReq) * torqueVal;
+                
+                if (!isJumpingInput) debounceObj.jumpDebounce = false;
+            }
+
+            if (bKeys.Click) {
+                let boostForce = 15000;
+                body.applyForce(new CANNON.Vec3(forward.x * boostForce, forward.y * boostForce, forward.z * boostForce), body.position);
+            }
+        }
+
+        // --- UPDATE LOOP ---
+        const clock = new THREE.Clock();
+
+        let p1State = { jumpDebounce: false, lastGroundedState: true };
+        let p1AirLock = { W: false, A: false, S: false, D: false };
+        let p2State = { jumpDebounce: false, lastGroundedState: true };
+        let p2AirLock = { W: false, A: false, S: false, D: false };
+
+        function updatePhysics() {
+            const dt = Math.min(clock.getDelta(), 0.1);
+            
+            let isGrounded = false;
+            let isWheelsDown = false;
+            let groundNormal = new CANNON.Vec3(0,1,0);
+            for(let i=0; i<world.contacts.length; i++) {
+                let c = world.contacts[i];
+                if(c.bi === carBody || c.bj === carBody) { 
+                    let otherBody = (c.bi === carBody) ? c.bj : c.bi;
+                    isGrounded = true; 
+
+                    let nx = c.ni.x, ny = c.ni.y, nz = c.ni.z;
+                    if (c.bi === carBody) { nx = -nx; ny = -ny; nz = -nz; } 
+                    
+                    const upCheck = new CANNON.Vec3(0,1,0); 
+                    carBody.quaternion.vmult(upCheck, upCheck);
+
+                    // Skip magnetic auto-righting alignment!
+                    if (otherBody !== ballBody) {
+                        groundNormal.set(nx, ny, nz);
+                        if (nx * upCheck.x + ny * upCheck.y + nz * upCheck.z > 0.3) isWheelsDown = true;
+                        break; 
+                    } else {
+                        // Force ground state false so player slides right off and enters aerial controls instantly
+                        isGrounded = false;
+                    }
+                }
+            }
+            
+            let isNPCGrounded = false;
+            let isNPCWheelsDown = false;
+            let npcGroundNormal = new CANNON.Vec3(0,1,0);
+            for(let i=0; i<world.contacts.length; i++) {
+                let c = world.contacts[i];
+                if(c.bi === npcBody || c.bj === npcBody) { 
+                    let otherBody = (c.bi === npcBody) ? c.bj : c.bi;
+                    isNPCGrounded = true; 
+                    let nx = c.ni.x, ny = c.ni.y, nz = c.ni.z;
+                    if (c.bi === npcBody) { nx = -nx; ny = -ny; nz = -nz; } 
+                    const upCheck = new CANNON.Vec3(0,1,0); 
+                    npcBody.quaternion.vmult(upCheck, upCheck);
+                    
+                    if (otherBody !== ballBody) {
+                        npcGroundNormal.set(nx, ny, nz);
+                        if (nx * upCheck.x + ny * upCheck.y + nz * upCheck.z > 0.3) isNPCWheelsDown = true;
+                        break; 
+                    } else {
+                        // Deny NPC grounding if touching the ball!
+                        isNPCGrounded = false;
+                    }
+                }
+            }
+
+            const right = new CANNON.Vec3(1,0,0); carBody.quaternion.vmult(right, right);
+            const up = new CANNON.Vec3(0,1,0); carBody.quaternion.vmult(up, up);
+            const forward = new CANNON.Vec3(0,0,-1); carBody.quaternion.vmult(forward, forward);
+
+            const nRight = new CANNON.Vec3(1,0,0); npcBody.quaternion.vmult(nRight, nRight);
+            const nUp = new CANNON.Vec3(0,1,0); npcBody.quaternion.vmult(nUp, nUp);
+            const nForward = new CANNON.Vec3(0,0,-1); npcBody.quaternion.vmult(nForward, nForward);
+
+            let isBoosting = false;
+            let npcIsBoosting = false;
+
+            let localKeys = {
+                W: keys['KeyW'] || false, A: keys['KeyA'] || false, 
+                S: keys['KeyS'] || false, D: keys['KeyD'] || false, 
+                Space: keys['Space'] || mouse.right || false, 
+                Shift: keys['ShiftLeft'] || keys['ShiftRight'] || false, 
+                Click: mouse.left || false 
+            };
+            
+            if (gameState === 'PLAYING') {
+                if (isHost) {
+                    // P1 = Local
+                    processCarInput(carBody, localKeys, isGrounded, isWheelsDown, groundNormal, p1State, p1AirLock);
+                    isBoosting = localKeys.Click;
+
+                    if (isMultiplayer) {
+                        // P2 = Peer keys
+                        processCarInput(npcBody, peerKeys, isNPCGrounded, isNPCWheelsDown, npcGroundNormal, p2State, p2AirLock);
+                        npcIsBoosting = peerKeys.Click;
+                    } 
+                } else {
+                    // WE ARE P2! (Client Side Prediction!)
+                    // P2 = Local
+                    processCarInput(npcBody, localKeys, isNPCGrounded, isNPCWheelsDown, npcGroundNormal, p2State, p2AirLock);
+                    npcIsBoosting = localKeys.Click;
+                    isBoosting = peerKeys.Click; // The host's boost
+                }
+
+                // ================= NPC AI LOGIC =================
+                if (!isMultiplayer && isNPCGrounded) {
+                    applyLateralDamping(npcBody, nRight, false);
+
+                    if (isNPCWheelsDown) {
+                        let npcUp = new CANNON.Vec3(0,1,0); 
+                        npcBody.quaternion.vmult(npcUp, npcUp);
+                        
+                        let alignAxis = new CANNON.Vec3();
+                        npcUp.cross(npcGroundNormal, alignAxis);
+                        
+                        let springTorque = 65000; 
+                        npcBody.torque.x += alignAxis.x * springTorque;
+                        npcBody.torque.y += alignAxis.y * springTorque;
+                        npcBody.torque.z += alignAxis.z * springTorque;
+
+                        let cp = npcBody.angularVelocity.dot(nRight);
+                        let cr = npcBody.angularVelocity.dot(nForward);
+                        npcBody.angularVelocity.x -= (nRight.x * cp + nForward.x * cr) * 0.15;
+                        npcBody.angularVelocity.y -= (nRight.y * cp + nForward.y * cr) * 0.15;
+                        npcBody.angularVelocity.z -= (nRight.z * cp + nForward.z * cr) * 0.15;
+                    } else {
+                        // Flail aggressively if turtle'd to right itself
+                        npcBody.torque.x += nForward.x * 25000;
+                        npcBody.torque.y += nForward.y * 25000;
+                        npcBody.torque.z += nForward.z * 25000;
+                    }
+
+                    let targetWorld = new THREE.Vector3();
+                    let isDefending = false;
+
+                    if (npcBody.position.z < ballBody.position.z - 8) {
+                        let side = (ballBody.position.x > 0) ? -50 : 50; 
+                        targetWorld.set(side, 0, 160); 
+                        isDefending = true;
+                    } else {
+                        // Intelligent goal-oriented dribbling
+                        let dirToGoalX = 0 - ballBody.position.x;
+                        let dirToGoalZ = -180 - ballBody.position.z; 
+                        let len = Math.sqrt(dirToGoalX*dirToGoalX + dirToGoalZ*dirToGoalZ);
+                        dirToGoalX /= len; dirToGoalZ /= len;
+                        
+                        targetWorld.x = ballBody.position.x - dirToGoalX * 18;
+                        targetWorld.z = ballBody.position.z - dirToGoalZ * 18;
+                        
+                        // Predict ball bounce
+                        targetWorld.x += ballBody.velocity.x * 0.4;
+                        targetWorld.z += ballBody.velocity.z * 0.4;
+                    }
+
+                    if (targetWorld.x > 100) targetWorld.x = 100;
+                    if (targetWorld.x < -100) targetWorld.x = -100;
+                    if (targetWorld.z > 160) targetWorld.z = 160;
+                    if (targetWorld.z < -160) targetWorld.z = -160;
+
+                    let targetLocal = npcGroup.worldToLocal(targetWorld);
+                    
+                    let speed = npcBody.velocity.length();
+                    let aiSteerGrip = Math.min(speed / 6.0, 1.0);
+
+                    if (aiSteerGrip > 0.05) {
+                        let targetSpin = 0;
+                        let aiSteerSpd = isDefending ? 4.5 : 3.8; // Snappier turning like an expert player
+                        aiSteerSpd *= aiSteerGrip;
+
+                        if (targetLocal.x > 1.5) targetSpin = -aiSteerSpd;
+                        else if (targetLocal.x < -1.5) targetSpin = aiSteerSpd;
+                        
+                        let currentSpin = npcBody.angularVelocity.dot(nUp);
+                        let spinDiff = targetSpin - currentSpin;
+
+                        npcBody.angularVelocity.x += nUp.x * spinDiff * 0.2;
+                        npcBody.angularVelocity.y += nUp.y * spinDiff * 0.2;
+                        npcBody.angularVelocity.z += nUp.z * spinDiff * 0.2;
+                    }
+
+                    if (targetLocal.z < -2) {
+                        let npcDriveForce = isDefending ? 24000 : 20000;
+                        if (Math.abs(targetLocal.x) > 15) npcDriveForce = 14000; 
+
+                        npcBody.applyForce(new CANNON.Vec3(nForward.x * npcDriveForce, nForward.y * npcDriveForce, nForward.z * npcDriveForce), npcBody.position);
+                        
+                        // Much more aggressive boost usage window
+                        if (Math.abs(targetLocal.x) < 8 && targetLocal.z < -15) {
+                            npcIsBoosting = true;
+                            npcBody.applyForce(new CANNON.Vec3(nForward.x * 20000, nForward.y * 20000, nForward.z * 20000), npcBody.position);
+                        }
+                    } else if (targetLocal.z > 2) {
+                        let npcBrakeForce = 20000;
+                        npcBody.applyForce(new CANNON.Vec3(-nForward.x * npcBrakeForce, -nForward.y * npcBrakeForce, -nForward.z * npcBrakeForce), npcBody.position);
+                    }
+
+                    // Advanced Striking/Dodging AI
+                    let dx = ballBody.position.x - npcBody.position.x;
+                    let dz = ballBody.position.z - npcBody.position.z;
+                    let distToBallWorld = Math.sqrt(dx*dx + dz*dz);
+                    
+                    if (distToBallWorld < 55 && ballBody.position.y > 6 && targetLocal.z < -5 && npcBody.velocity.y < 2) {
+                        // AI leaps and front flips aggressively into the ball!
+                        npcBody.applyImpulse(new CANNON.Vec3(0, 14000, 0), npcBody.position);
+                        npcBody.angularVelocity.x += nForward.x * 8.0;
+                        npcBody.angularVelocity.y += nForward.y * 8.0;
+                        npcBody.angularVelocity.z += nForward.z * 8.0;
+                    }
+                } else if (!isMultiplayer) {
+                    npcBody.angularVelocity.x *= 0.95;
+                    npcBody.angularVelocity.z *= 0.95;
+                }
+            } else {
+                isBoosting = false;
+            }
+
+            // Visual Effects 
+            playerExhaust.f1.visible = isBoosting;
+            playerExhaust.f2.visible = isBoosting;
+            if(isBoosting) {
+                document.getElementById('speedLines').classList.add('boosting');
+                playerExhaust.f1.scale.z = 1 + Math.random() * 2;
+                playerExhaust.f2.scale.z = 1 + Math.random() * 2;
+            } else {
+                document.getElementById('speedLines').classList.remove('boosting');
+            }
+
+            npcExhaust.f1.visible = npcIsBoosting;
+            npcExhaust.f2.visible = npcIsBoosting;
+            if(npcIsBoosting) {
+                npcExhaust.f1.scale.z = 1 + Math.random() * 2;
+                npcExhaust.f2.scale.z = 1 + Math.random() * 2;
+            }
+
+            world.step(1/60, dt, 10); // Heavily increased iterations inside the solver to prevent wall-clip tunneling
+
+            carGroup.position.copy(carBody.position);
+            carGroup.quaternion.copy(carBody.quaternion);
+
+            npcGroup.position.copy(npcBody.position);
+            npcGroup.quaternion.copy(npcBody.quaternion);
+
+            ballMesh.position.copy(ballBody.position);
+            ballMesh.quaternion.copy(ballBody.quaternion);
+            
+            ballHalo.position.copy(ballBody.position);
+            ballHalo.color.setHSL( (Date.now() % 5000)/5000, 1, 0.5 ); 
+
+            checkGoals();
+        }
+
+        // --- CAMERA CONTROLS ---
+        const camOffset = new THREE.Vector3(0, 12, 28);
+        let ballCamActive = true;
+        let lastC = false;
+        const cameraRaycaster = new THREE.Raycaster();
+
+        function updateCamera() {
+            if (keys['KeyC'] && !lastC) ballCamActive = !ballCamActive;
+            lastC = keys['KeyC'];
+
+            let idealPos = new THREE.Vector3();
+            let lookTarget = new THREE.Vector3();
+            
+            // DYNAMIC CAMERA FOCUS FOR MULTIPLAYER CLIENT
+            let myCarGroup = (isMultiplayer && !isHost) ? npcGroup : carGroup;
+
+            if (ballCamActive) {
+                let dx = myCarGroup.position.x - ballMesh.position.x;
+                let dz = myCarGroup.position.z - ballMesh.position.z;
+                let horizontalDist = Math.sqrt(dx*dx + dz*dz);
+                
+                let dirX = 0, dirZ = 1;
+                if (horizontalDist > 0.001) {
+                    dirX = dx / horizontalDist;
+                    dirZ = dz / horizontalDist;
+                }
+                
+                idealPos.set(
+                    myCarGroup.position.x + dirX * 30, 
+                    myCarGroup.position.y + 10, 
+                    myCarGroup.position.z + dirZ * 30
+                );
+                lookTarget.copy(ballMesh.position);
+            } else {
+                idealPos.copy(camOffset).applyQuaternion(myCarGroup.quaternion).add(myCarGroup.position);
+                let forward = new THREE.Vector3(0, 0, -50).applyQuaternion(myCarGroup.quaternion).add(myCarGroup.position);
+                lookTarget.copy(forward);
+            }
+
+            let dir = new THREE.Vector3().subVectors(idealPos, myCarGroup.position);
+            let dist = dir.length();
+            dir.normalize();
+            
+            cameraRaycaster.set(myCarGroup.position, dir);
+            let hits = cameraRaycaster.intersectObjects(wallMeshes, false);
+            if (hits.length > 0 && hits[0].distance < dist) {
+                let safeDist = Math.max(hits[0].distance - 2.5, 0.5);
+                idealPos.copy(myCarGroup.position).addScaledVector(dir, safeDist);
+            }
+
+            if (idealPos.y < 2) idealPos.y = 2; 
+            camera.position.lerp(idealPos, 0.15);
+            
+            if (!window.currentLook) window.currentLook = new THREE.Vector3().copy(lookTarget);
+            window.currentLook.lerp(lookTarget, 0.15);
+            camera.lookAt(window.currentLook);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+            updatePhysics();
+            updateCamera();
+            renderer.render(scene, camera);
+        }
+
+        // Timer Logic 
+        let seconds = 300;
+        setInterval(() => {
+            if(gameState === 'PLAYING' && seconds > 0) seconds--;
+            document.getElementById('timer').innerText = Math.floor(seconds/60) + ":" + (seconds%60).toString().padStart(2, '0');
+        }, 1000);
+
+        animate();
+
+    </script>
+</body>
+</html>
